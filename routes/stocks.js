@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const stocks = require('../services/stocks');
+const logger = require('../services/logger');
 
 router.get('/', function(req, res, next) {
   try {
@@ -10,7 +11,7 @@ router.get('/', function(req, res, next) {
     res.json(result);
   } 
   catch (err) {
-    console.error('Error while getting all stocks');
+    logger.error('Error while getting all stocks');
     next(err);
   }
 });
@@ -18,11 +19,12 @@ router.get('/', function(req, res, next) {
 router.get('/:ticker', function(req, res, next) {
   try {
     const ticker = req.params.ticker;
-    const result = stocks.getTickerInfoWithClose(ticker);
+    const getAllPrices = req.query.getAllPrices === 'true';
+    const result = stocks.getTickerInfoWithClose(ticker, getAllPrices);
     res.json(result);
   }
   catch (err) {
-    console.error('Error while getting stock information');
+    logger.error('Error while getting stock information');
     next(err);
   }
 });
@@ -34,7 +36,7 @@ router.get('/:ticker/score', function(req, res, next) {
     res.json(result);
   }
   catch (err) {
-    console.error('Error while getting stock score');
+    logger.error('Error while getting stock score');
     next(err);
   }
 })
