@@ -86,7 +86,8 @@ function calculateVolatility(prices) {
   const avgReturn = returns.reduce((sum, value) => sum + Math.pow(value - avgReturn, 2), 0) / returns.length;
 
   // Calculate variance and std dev as percentage
-  const stdDeviation = Math.swrt(variance);
+  const stdDeviation = Math.sqrt(avgReturn);
+  logger.info(`Logged calculated volatility of ${stdDeviation * 100}`);
   return stdDeviation * 100;
 }
 
@@ -119,11 +120,7 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
               price,
               date
       FROM swsCompanyPriceClose
-      WHERE date = (
-        SELECT MAX(date)
-        FROM swsCompanyPriceClose
-        WHERE company_id = swsCompanyPriceClose.company_id
-      )
+      WHERE date >= ?
     ) p on c.id = p.company_id
     WHERE 1=1
   `;
@@ -141,8 +138,16 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
     params.push(filters.minScoreTotal);
   }
 
+  if (sortBy === 'score') {
+    baseQuery += ` ORDER BY s.total ${sortOrder}`;
+  } 
+
   baseQuery += ' LIMIT ? OFFSET ?';
   params.push(limit, offset);
+  
+  logger.info(params);
+  logger.info(sortBy);
+  logger.info(baseQuery);
 
   // Query DB and generate output
   const companies = db.query(baseQuery, params);
@@ -170,8 +175,13 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
     // Calculate volatility for each company
     const result = Object.values(companiesWithPrices).map(company => ({
       ...company,
-      volatility: calculateVolatility(company.prices)
+      volatility: calculateVolatility(company.prices),
     }));
+    
+    // Create inline sort now that we have the volatility figure of each ticker
+    if(sortBy === 'volatility') {
+      result.sort((a, b) => (sortOrder === 'asc' ? a.volatility - b.volatility : b.volatility - a.volatility));
+    }
 
     return {
       data: result,
