@@ -6,6 +6,7 @@ const stocksRouter = require('./routes/stocks');
 
 app.get('/', (req, res) => {
   res.json({message: 'Stock server active.'});
+  logger.info('Receiving connection');
 });
 
 app.use('/stocks', stocksRouter);
