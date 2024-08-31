@@ -73,8 +73,11 @@ function getTickerScore(ticker) {
 
 // As this is a dev helper function it does not need JSDoc commenting.
 // Calculates the volatitlity of a company's stock based on a historical price array.
-function calculateVolatility(prices) {
-  if (prices.lengthj < 2) return 0;
+/*function calculateVolatility(prices) {
+  if (prices.lengthj < 2) {
+    logger.info('Price array does not have enough data to calculate volatility');
+    return 0;
+  }
 
   // Calculate daily returns across the series, and the average
   const returns = [];
@@ -87,8 +90,21 @@ function calculateVolatility(prices) {
 
   // Calculate variance and std dev as percentage
   const stdDeviation = Math.sqrt(avgReturn);
-  logger.info(`Logged calculated volatility of ${stdDeviation * 100}`);
   return stdDeviation * 100;
+}
+*/
+function calculateVolatility(prices) {
+  if (prices.length < 2) {
+    logger.info('Price array has length below 2, unable to calculate volatility');
+    return 0; // Not enough data to calculate volatility
+  }
+
+  const priceValues = prices.map(p => p.price);
+  const avg = priceValues.reduce((sum, price) => sum + price, 0) / priceValues.length;
+  const variance = priceValues.reduce((sum, price) => sum + Math.pow(price - avg, 2), 0) / priceValues.length;
+  
+  // Return standard deviation from avg - volatility
+  return Math.sqrt(variance);
 }
 
 /**
@@ -104,7 +120,7 @@ function calculateVolatility(prices) {
 function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy = 'score', sortOrder = 'asc') {
   const limit = config.listPerPage;
   const offset = (page - 1) * limit;
-
+  
   let baseQuery = `
     SELECT  c.id,
             c.ticker_symbol,
@@ -120,13 +136,19 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
               price,
               date
       FROM swsCompanyPriceClose
-      WHERE date >= ?
+      WHERE date = (
+        SELECT MAX(date)
+        FROM swsCompanyPriceClose
+        WHERE company_id = swsCompanyPriceClose.company_id
+        AND date BETWEEN (SELECT MIN(date) FROM swsCompanyPriceClose) AND 
+                          (SELECT MAX(date) FROM swsCompanyPriceClose) 
+      ) 
     ) p on c.id = p.company_id
     WHERE 1=1
   `;
 
-  const params = [moment().subtract(90, 'days').format('YYYY-MM-DD')];
-
+  //const params = [moment().subtract(90, 'days').format('YYYY-MM-DD')];
+  const params = [];
   // Check and apply any filters from parameters
   if (filters.exchangeSymbol) {
     baseQuery += ' AND c.exchange_symbol = ?';
@@ -152,9 +174,22 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
   // Query DB and generate output
   const companies = db.query(baseQuery, params);
  
-  logger.info(`Companies:\n ${companies}`);
-
   if (includePrices) {
+    const companyIds = companies.map(c => c.id);
+    if (companyIds.length === 0) {
+      return { data: [], meta: { page } }; // No companies found
+    }
+
+    const priceQuery = `
+      SELECT company_id, price, date
+      FROM swsCompanyPriceClose
+      WHERE company_id IN (${companyIds.map(() => '?').join(', ')})
+        AND date BETWEEN (SELECT MIN(date) FROM swsCompanyPriceClose) AND (SELECT MAX(date) FROM swsCompanyPriceClose)
+    `;
+
+    const priceParams = companyIds;
+    const prices = db.query(priceQuery, priceParams);
+
     // Group prices by company ID
     const companiesWithPrices = companies.reduce((acc, company) => {
       const { id, ticker_symbol, name, exchange_symbol, score, price, date } = company;
@@ -168,11 +203,15 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
           prices: []
         };
       }
-      if (price !== null) {
-        acc[id].prices.push({ price, date });
-      }
       return acc;
     }, {});
+
+    // Populate prices for each company
+    prices.forEach(({ company_id, price, date }) => {
+      if (companiesWithPrices[company_id]) {
+        companiesWithPrices[company_id].prices.push({ price, date });
+      }
+    });
 
     // Calculate volatility for each company
     const result = Object.values(companiesWithPrices).map(company => ({
@@ -193,7 +232,7 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
 
   else {
     // Remove prices if not needed
-    const result = companies.map(({ price, date, ...company }) => company);
+    const result = companies;
     return {
       data: result,
       meta: { page }
