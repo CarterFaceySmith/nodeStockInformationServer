@@ -7,11 +7,32 @@ router.get('/', function(req, res, next) {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const includePrices = req.query.includePrices === 'true';
-    const result = stocks.getAllTickersInfo(page, includePrices);
+    const filters = {
+      exchangeSymbol: req.query.exchangeSymbol,
+      minScoreTotal: parseInt(req.query.minScoreTotal)
+    };
+
+    const sortBy = req.query.sortBy || 'score';
+    const sortOrder = req.query.sortOrder || 'asc';
+
+    const result = stocks.getAllTickersInfo(page, includePrices, filters, sortBy, sortOrder);
     res.json(result);
   } 
   catch (err) {
     logger.error('Error while getting all stocks');
+    next(err);
+  }
+});
+
+router.get('/prevStocks', function(req, res, next) {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const includePrices = req.query.includePrices === 'true';
+    const result = stocks.getAllTickersInfoPrevious(page, includePrices);
+    res.json(result);
+  } 
+  catch (err) {
+    console.error('Error while getting all stocks');
     next(err);
   }
 });
