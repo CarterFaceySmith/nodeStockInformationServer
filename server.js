@@ -19,18 +19,27 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Graceful exit on SIGINT
+// Amended better-sqlite3 graceful exit code 
 process.on('SIGINT', () => {
-  console.log('SIGINT detected, shutting down server...');
-  db.close((err) => {
-    if (err) {
-      logger.error('Error closing database', err);
-    }
-    else {
-      logger.info('Database closed');
-    }
-    process.exit(0);
-  });
+  console.log('\nSIGINT detected, shutting down server...');
+  logger.info('Shutting down server gracefully...');
+  
+  // Log the shutdown and exit process
+  logger.info('Database will be closed automatically by the process exit.');
+
+  // Exit the process
+  process.exit(0);
+});
+
+// Handle uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught Exception:', err.message);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
 
 app.listen(port, () => {
