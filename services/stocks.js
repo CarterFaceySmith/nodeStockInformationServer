@@ -151,7 +151,9 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
 
   // Query DB and generate output
   const companies = db.query(baseQuery, params);
-  
+ 
+  logger.info(`Companies:\n ${companies}`);
+
   if (includePrices) {
     // Group prices by company ID
     const companiesWithPrices = companies.reduce((acc, company) => {

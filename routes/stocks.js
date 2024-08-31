@@ -8,8 +8,8 @@ router.get('/', function(req, res, next) {
     const page = parseInt(req.query.page, 10) || 1;
     const includePrices = req.query.includePrices === 'true';
     const filters = {
-      exchangeSymbol: req.query.exchangeSymbol,
-      minScoreTotal: parseInt(req.query.minScoreTotal)
+      exchangeSymbol: req.query.exchangeSymbol || null,
+      minScoreTotal: parseInt(req.query.minScoreTotal) || null
     };
 
     const sortBy = req.query.sortBy || 'score';
