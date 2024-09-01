@@ -1,10 +1,10 @@
-<h3 align="center">nodeStockInformationServer</h3>
+<h3 align="center">nodeStockInformationServer (NSIS)</h3>
 <br>
 <p align="center"><i>Stock Information API Server</i></p>
 
 ## About The Project
 
-The `nodeStockInformationServer` is a Node.js application built using Express and designed to provide stock market information from a local database via a RESTful API. 
+NSIS is a Node.js application built using Express and designed to provide stock market information from a local database via a RESTful API. 
 
 This server enables users to retrieve company stock data from a three table local database, including;
 - Historical prices
@@ -21,7 +21,7 @@ By default it will log only info level events, these are logged to the console a
 
 ## Getting Started
 
-To get started with the `nodeStockInformationServer`, follow these steps:
+To get started with NSIS, follow these steps:
 
 ### Prerequisites
 
@@ -33,7 +33,7 @@ To get started with the `nodeStockInformationServer`, follow these steps:
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/nodeStockInformationServer.git
+   git clone https://github.com/CarterFaceySmith/nodeStockInformationServer.git
    ```
 
 2. **Navigate to the project directory:**
@@ -144,7 +144,7 @@ You can use `export <ENV VAR NAME>=X` to customise these before starting the app
 
 ## Testing
 
-To ensure the functionality of your application, you can run tests using mocha and chai. The test scripts can be run using the following commands:
+To ensure the functionality of your application, you can run tests using mocha and node assert. The test scripts can be run using the following commands:
 
 Run Tests:
 Executes the test suite.
@@ -153,7 +153,7 @@ npm test
 ```
 
 Run Tests with Nodemon:
-If you are using nodemon for development, you can still run tests with mocha. To do so, use the following command, which will watch for changes and rerun the tests:
+If you are using nodemon for development, you can still run tests with mocha. To do so, use the following command, which will watch for changes and rerun the tests when they are made:
 
 ```bash
 npm run test:watch
@@ -163,9 +163,10 @@ npm run test:watch
 
 - In-memory server-side caching, likely via implementation of Redis.
 - More robust error handling
-- Customising the rate limiting per route
+- Customising the rate limiting on a per route basis
 - Improved security measures
 - Indexing of the database prior to querying
+- Potential refactoring of the database joins to be more efficient in querying
 - Deployment as an isolated microservice
 - Implementation of a simple frontend for visualisation
 
