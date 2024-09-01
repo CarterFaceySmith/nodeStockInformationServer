@@ -177,7 +177,13 @@ npm run test:watch
 
 ## Potential Improvements
 
-In progress.
+- In-memory server-side caching, likely via implementation of Redis.
+- More robust error handling
+- Customising the rate limiting per route
+- Improved security measures
+- Indexing of the database prior to querying
+- Deployment as an isolated microservice
+- Implementation of a simple frontend for visualisation
 
 ## Notes
 
