@@ -15,7 +15,7 @@ This server enables users to retrieve company stock data from a three table loca
 
 The API supports various query parameters for filtering, sorting, and basic pagination.
 
-The API has a local logger using [Winston](https://github.com/winstonjs/winston) which runs of severity levels specified by [RFC5424](https://tools.ietf.org/html/rfc5424). 
+The API has a local logger using [Winston](https://github.com/winstonjs/winston) which runs according to the standard severity levels specified by [RFC5424](https://tools.ietf.org/html/rfc5424). 
 
 By default it will log only info level events, these are logged to the console and the `combined.log` file found in the project root directory.
 
