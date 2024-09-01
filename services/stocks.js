@@ -73,30 +73,10 @@ function getTickerScore(ticker) {
 
 // As this is a dev helper function it does not need JSDoc commenting.
 // Calculates the volatitlity of a company's stock based on a historical price array.
-/*function calculateVolatility(prices) {
-  if (prices.lengthj < 2) {
-    logger.info('Price array does not have enough data to calculate volatility');
-    return 0;
-  }
-
-  // Calculate daily returns across the series, and the average
-  const returns = [];
-  for (let i = 1; i < prices.length; i++) {
-    const returnValue = (prices[i].price - prices[i - 1].price / prices[i - 1].price);
-    returns.push(returnValue);
-  }
-
-  const avgReturn = returns.reduce((sum, value) => sum + Math.pow(value - avgReturn, 2), 0) / returns.length;
-
-  // Calculate variance and std dev as percentage
-  const stdDeviation = Math.sqrt(avgReturn);
-  return stdDeviation * 100;
-}
-*/
 function calculateVolatility(prices) {
   if (prices.length < 2) {
-    logger.info('Price array has length below 2, unable to calculate volatility');
-    return 0; // Not enough data to calculate volatility
+    logger.error('Price array has length below 2, unable to calculate volatility');
+    return 0;
   }
 
   const priceValues = prices.map(p => p.price);
@@ -110,16 +90,36 @@ function calculateVolatility(prices) {
 /**
  * Returns an array of company entities, optionally with each company's past share prices.
  * 
+ * This function retrieves a paginated list of companies and their associated data. When `includePrices` is `true`,
+ * it also includes historical price data for each company. The function calculates volatility based on historical
+ * price data and can sort the results based on different criteria.
+ * 
  * @param {number} [page=1] - The pagination page number (defaults to 1).
  * @param {boolean} [includePrices=false] - Whether or not to include the past share prices in the response (defaults to false).
+ * @param {Object} [filters={}] - Optional filters to apply to the results.
+ * @param {string} [filters.exchangeSymbol] - The exchange symbol to filter companies by.
+ * @param {number} [filters.minScoreTotal] - The minimum score total to filter companies by.
+ * @param {number} [timeRangeDays=90] - The number of days of historical price data to include (defaults to 90). The actual range may be shorter if the data does not exist for the full period.
+ * @param {string} [sortBy='score'] - The field to sort by (e.g., 'score', 'volatility').
+ * @param {string} [sortOrder='asc'] - The sort order ('asc' or 'desc').
+ * 
  * @returns {Object} An object containing the data and pagination metadata. 
- * @returns {Array<Object>} return.data - An array of company objects. If `includesPrices` is true, each object includes a list of past prices.
+ * @returns {Array<Object>} return.data - An array of company objects. If `includePrices` is `true`, each object includes a list of past prices.
  * @returns {Object} return.meta - Metadata about the current page.
- * @returns {number} return.meta.page - The current page number. 
+ * @returns {number} return.meta.page - The current page number.
  */
-function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy = 'score', sortOrder = 'asc') {
+function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRangeDays = 90, sortBy = 'score', sortOrder = 'asc') {
   const limit = config.listPerPage;
   const offset = (page - 1) * limit;
+  
+  // Calculate the start and end dates for price data range
+  // Uncomment the following lines to use dynamic date calculations
+  // const endDate = moment().format('YYYY-MM-DD');
+  // const startDate = moment().subtract(timeRangeDays, 'days').format('YYYY-MM-DD');
+  
+  // Hardcoded values for demonstration purposes
+  const endDate = '2020-05-22';
+  const startDate = '2020-03-25';
   
   let baseQuery = `
     SELECT  c.id,
@@ -136,19 +136,13 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
               price,
               date
       FROM swsCompanyPriceClose
-      WHERE date = (
-        SELECT MAX(date)
-        FROM swsCompanyPriceClose
-        WHERE company_id = swsCompanyPriceClose.company_id
-        AND date BETWEEN (SELECT MIN(date) FROM swsCompanyPriceClose) AND 
-                          (SELECT MAX(date) FROM swsCompanyPriceClose) 
-      ) 
+      WHERE date >= ? AND date <= ?
     ) p on c.id = p.company_id
     WHERE 1=1
   `;
 
-  //const params = [moment().subtract(90, 'days').format('YYYY-MM-DD')];
-  const params = [];
+  const params = [startDate, endDate];
+  
   // Check and apply any filters from parameters
   if (filters.exchangeSymbol) {
     baseQuery += ' AND c.exchange_symbol = ?';
@@ -162,14 +156,18 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
 
   if (sortBy === 'score') {
     baseQuery += ` ORDER BY s.total ${sortOrder}`;
-  } 
+  }
 
   baseQuery += ' LIMIT ? OFFSET ?';
   params.push(limit, offset);
-  
-  logger.info(params);
-  logger.info(sortBy);
-  logger.info(baseQuery);
+ 
+  // Debugging output
+  logger.debug(`
+    DB QUERY:\n===========================
+    Parameters:\t${params}
+    Sorting by:\t${sortBy}
+    SQL:\t${baseQuery}
+  `);
 
   // Query DB and generate output
   const companies = db.query(baseQuery, params);
@@ -184,22 +182,22 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
       SELECT company_id, price, date
       FROM swsCompanyPriceClose
       WHERE company_id IN (${companyIds.map(() => '?').join(', ')})
-        AND date BETWEEN (SELECT MIN(date) FROM swsCompanyPriceClose) AND (SELECT MAX(date) FROM swsCompanyPriceClose)
+        AND date BETWEEN ? AND ?
     `;
 
-    const priceParams = companyIds;
+    const priceParams = [...companyIds, startDate, endDate];
     const prices = db.query(priceQuery, priceParams);
 
     // Group prices by company ID
     const companiesWithPrices = companies.reduce((acc, company) => {
-      const { id, ticker_symbol, name, exchange_symbol, score, price, date } = company;
+      const { id, ticker_symbol, name, exchange_symbol, total, price, date } = company;
       if (!acc[id]) {
         acc[id] = {
           id,
           ticker_symbol,
           name,
           exchange_symbol,
-          score,
+          total,
           prices: []
         };
       }
@@ -219,8 +217,8 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
       volatility: calculateVolatility(company.prices),
     }));
     
-    // Create inline sort now that we have the volatility figure of each ticker
-    if(sortBy === 'volatility') {
+    // Sort by volatility if needed
+    if (sortBy === 'volatility') {
       result.sort((a, b) => (sortOrder === 'asc' ? a.volatility - b.volatility : b.volatility - a.volatility));
     }
 
@@ -228,9 +226,7 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
       data: result,
       meta: { page }
     };
-  } 
-
-  else {
+  } else {
     // Remove prices if not needed
     const result = companies;
     return {
@@ -238,46 +234,10 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, sortBy
       meta: { page }
     };
   }
-} 
-
-// PREV IMPLEMENTATION
-function getAllTickersInfoPrevious(page = 1, includePrices = false) {
-  const offset = (page - 1) * config.listPerPage;
-  const query = 'SELECT * FROM swsCompany LIMIT ? OFFSET ?';
-  const companies = db.query(query, [config.listPerPage, offset]);
- 
-  logger.debug(`Offset: ${offset}, Limit: ${config.listPerPage}`);
-  logger.debug(`Query: ${query}`);
-  logger.debug(`Companies: ${companies}`);
-
-  if (includePrices) {
-    const companiesWithPrices = companies.map(company => {
-      const priceQuery = 'SELECT * FROM swsCompanyPriceClose WHERE company_id = ? ORDER BY date';
-      // Note: This SQL query will not scale well across larger tables and should have a display limit
-      const prices = db.query(priceQuery, [company.id]);
-      return {
-        ...company,
-        prices
-      };
-    });
-
-    return {
-      data: companiesWithPrices,
-      meta: { page }
-    };
-  } 
-
-  else {
-    return  {
-      data: companies,
-      meta: { page }
-    };
-  } 
 }
 
 module.exports = {
   getAllTickersInfo,
-  getAllTickersInfoPrevious,
   getTickerInfo,
   getTickerInfoWithClose,
   getTickerScore

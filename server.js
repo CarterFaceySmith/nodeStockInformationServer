@@ -3,6 +3,17 @@ const app = express();
 const port = process.env.PORT || 3000;
 const logger = require('./services/logger');
 const stocksRouter = require('./routes/stocks');
+const rateLimit = require('express-rate-limit');
+const config = require('./config');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,     // 15min
+  max: config.requestRateLimit,// 100req per windowMs per IP addr
+  message: 'Too many requests from this IP, please try again later.',
+  headers: true,
+});
+
+app.use(limiter);
 
 app.get('/', (req, res) => {
   res.json({message: 'Stock server active.'});
@@ -19,18 +30,27 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Graceful exit on SIGINT
+// Amended better-sqlite3 graceful exit code 
 process.on('SIGINT', () => {
-  console.log('SIGINT detected, shutting down server...');
-  db.close((err) => {
-    if (err) {
-      logger.error('Error closing database', err);
-    }
-    else {
-      logger.info('Database closed');
-    }
-    process.exit(0);
-  });
+  console.log('\nSIGINT detected, shutting down server...');
+  logger.info('Shutting down server gracefully...');
+  
+  // Log the shutdown and exit process
+  logger.info('Database will be closed automatically by the process exit.');
+
+  // Exit the process
+  process.exit(0);
+});
+
+// Handle uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught Exception:', err.message);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
 
 app.listen(port, () => {
