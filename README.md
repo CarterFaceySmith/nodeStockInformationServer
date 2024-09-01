@@ -112,25 +112,8 @@ The server exposes several endpoints to interact with stock data. Below are exam
   ```bash
   curl -X GET "http://localhost:3000/stocks?timeIntervalDays=30"
   ```
-
-#### 2. **GET `/stocks/prevStocks`**
-
-- **Basic Request**: Retrieves the first page of previous stocks.
-  ```bash
-  curl -X GET "http://localhost:3000/stocks/prevStocks"
-  ```
-
-- **Include Prices**: Retrieves the first page of previous stocks with price data.
-  ```bash
-  curl -X GET "http://localhost:3000/stocks/prevStocks?includePrices=true"
-  ```
-
-- **Request with Pagination**: Retrieves the second page of previous stocks.
-  ```bash
-  curl -X GET "http://localhost:3000/stocks/prevStocks?page=2"
-  ```
-
-#### 3. **GET `/stocks/:ticker`**
+  
+#### 2. **GET `/stocks/:ticker`**
 
 - **Retrieve Information for a Ticker**: Retrieves information for the ticker `AAPL`.
   ```bash
@@ -142,12 +125,13 @@ The server exposes several endpoints to interact with stock data. Below are exam
   curl -X GET "http://localhost:3000/stocks/AAPL?getAllPrices=true"
   ```
 
-#### 4. **GET `/stocks/:ticker/score`**
+#### 3. **GET `/stocks/:ticker/score`**
 
 - **Retrieve Score for a Ticker**: Retrieves the score for the ticker `AAPL`.
   ```bash
   curl -X GET "http://localhost:3000/stocks/AAPL/score"
   ```
+  
 ## Configuration and Testing
 
 ### Configuration
