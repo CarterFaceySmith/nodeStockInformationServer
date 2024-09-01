@@ -45,7 +45,6 @@ function getTickerInfoWithClose(ticker, getAllPrices = false) {
   return {
     data,
     closeData: getAllPrices ? closeData : closeData[0] || null
-    // Note: Potentially overengineered for this task but closeData has been made extensible and compatible with common time series formatting in charting libs. Could improve further by intaking an interval for price output.
   };
 }
 
