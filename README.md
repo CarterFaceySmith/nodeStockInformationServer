@@ -175,9 +175,13 @@ If you are using nodemon for development, you can still run tests with mocha. To
 npm run test:watch
 ```
 
+## Potential Improvements
+
+In progress.
+
 ## Notes
 
-If you encounter any issues or have suggestions, please feel free to log an issue on the [GitHub repository](https://github.com/yourusername/nodeStockInformationServer) or [contact me](mailto:carterfs@proton.me).
+If you encounter any issues or have suggestions, please feel free to log an issue on the [GitHub repository](https://github.com/CarterFaceySmith/nodeStockInformationServer) or [contact me](mailto:carterfs@proton.me).
 
 ## License
 
