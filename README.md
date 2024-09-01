@@ -9,10 +9,15 @@ The `nodeStockInformationServer` is a Node.js application built using Express an
 This server enables users to retrieve company stock data from a three table local database, including;
 - Historical prices
 - Simply Wall St snowflake scores
+- Company identity data
 - Volatility
 - ...and other relevant metrics.
 
 The API supports various query parameters for filtering, sorting, and basic pagination.
+
+The API has a local logger using [Winston](https://github.com/winstonjs/winston) which runs of severity levels specified by [RFC5424](https://tools.ietf.org/html/rfc5424). 
+
+By default it will log only info level events, these are logged to the console and the `combined.log` file found in the project root directory.
 
 ## Getting Started
 
@@ -51,12 +56,18 @@ To get started with the `nodeStockInformationServer`, follow these steps:
 
    Production Server:
    ```bash
-   npm start
+   npm run start
    ```
 
    Development Server:
    ```bash
    npm run start:dev
+   ```
+
+   Run Tests:
+   ```bash
+   npm test // Runs tests manually
+   npm run test:watch // Run tests with nodemon to auto-rerun on file changes
    ```
 
    By default, the server will start on port `3000`. You can change the port by setting the `PORT` environment variable.
@@ -137,6 +148,32 @@ The server exposes several endpoints to interact with stock data. Below are exam
   ```bash
   curl -X GET "http://localhost:3000/stocks/AAPL/score"
   ```
+## Configuration and Testing
+
+### Configuration
+
+The project uses a `config.js` file to manage various configuration settings through environment variables. The configuration file, located at `./config.js`, includes the following environment default variables:
+- `listPerPage`: Defines the number of items to display per page. It defaults to 15 if not specified in the environment variables.
+- `requestRateLimit`: Sets the maximum number of requests allowed. It defaults to 100 if not specified in the environment variables.
+
+You can use `export <ENV VAR NAME>=X` to customise these before starting the application.
+
+## Testing
+
+To ensure the functionality of your application, you can run tests using mocha and chai. The test scripts can be run using the following commands:
+
+Run Tests:
+Executes the test suite.
+```bash
+npm test
+```
+
+Run Tests with Nodemon:
+If you are using nodemon for development, you can still run tests with mocha. To do so, use the following command, which will watch for changes and rerun the tests:
+
+```bash
+npm run test:watch
+```
 
 ## Notes
 
