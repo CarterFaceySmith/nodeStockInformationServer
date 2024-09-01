@@ -3,6 +3,17 @@ const app = express();
 const port = process.env.PORT || 3000;
 const logger = require('./services/logger');
 const stocksRouter = require('./routes/stocks');
+const rateLimit = require('express-rate-limit');
+const config = require('./config');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,     // 15min
+  max: config.requestRateLimit,// 100req per windowMs per IP addr
+  message: 'Too many requests from this IP, please try again later.',
+  headers: true,
+});
+
+app.use(limiter);
 
 app.get('/', (req, res) => {
   res.json({message: 'Stock server active.'});
