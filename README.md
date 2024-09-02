@@ -83,11 +83,6 @@ The server exposes several endpoints to interact with stock data. Below are exam
   curl -X GET "http://localhost:3000/stocks"
   ```
 
-- **Request with Pagination**: Retrieves the second page of stocks if it exists.
-  ```bash
-  curl -X GET "http://localhost:3000/stocks?page=2"
-  ```
-
 - **Include Prices**: Retrieves the first page of stocks and includes historical prices.
   ```bash
   curl -X GET "http://localhost:3000/stocks?includePrices=true"
@@ -164,6 +159,7 @@ npm run test:watch
 - In-memory server-side caching, likely via implementation of Redis.
 - More robust error handling
 - Customising the rate limiting on a per route basis
+- Reimplementation of pagination for a larger database
 - Improved security measures
 - Indexing of the database prior to querying
 - Potential refactoring of the database joins to be more efficient in querying
