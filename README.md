@@ -95,7 +95,7 @@ The server exposes several endpoints to interact with stock data. Below are exam
 
 - **Filter by Exchange Symbol**: Retrieves stocks from a specific exchange symbol.
   ```bash
-  curl -X GET "http://localhost:3000/stocks?exchangeSymbol=NASDAQ"
+  curl -X GET "http://localhost:3000/stocks?exchangeSymbol=NYSE"
   ```
 
 - **Filter by Minimum Score Total**: Retrieves stocks with a minimum score total of 15.
