@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha",
-    "test:watch": "nodemon --watch 'services/**/*.js' --watch 'test/**/*.js' --exec 'npm test'",
+    "test:watch": "nodemon --watch 'services/**/*.js' --watch 'test/**/*.js' --watch 'routes/**/*.js' --exec 'npm test'",
     "start": "node ./server.js",
     "start:dev": "nodemon ./server.js"
   },
@@ -15,7 +15,9 @@
   "dependencies": {
     "better-sqlite3": "^11.2.1",
     "express": "^4.19.2",
-    "express-rate-limit": "^7.4.0"
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "mocha": "^10.7.3",
