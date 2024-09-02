@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Information</h1>
+        
+        <!-- Form for API request -->
+        <form id="stockForm">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="includePrices" name="includePrices">
+                    Include Prices
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="exchangeSymbol">Exchange Symbol:</label>
+                <input type="text" id="exchangeSymbol" name="exchangeSymbol">
+            </div>
+            <div class="form-group">
+                <label for="minScoreTotal">Minimum Score Total:</label>
+                <input type="number" id="minScoreTotal" name="minScoreTotal">
+            </div>
+            <div class="form-group">
+                <label for="sortBy">Sort By:</label>
+                <select id="sortBy" name="sortBy">
+                    <option value="score">Score</option>
+                    <option value="volatility">Volatility</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sortOrder">Sort Order:</label>
+                <select id="sortOrder" name="sortOrder">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="timeIntervalDays">Time Interval Days:</label>
+                <input type="number" id="timeIntervalDays" name="timeIntervalDays" value="90">
+            </div>
+            <div class="form-group">
+                <button type="submit">Fetch Stocks</button>
+            </div>
+        </form>
+
+        <!-- Form for searching ticker -->
+        <div class="results">
+            <h2>Search Ticker</h2>
+            <form id="tickerForm">
+                <div class="form-group">
+                    <label for="ticker">Ticker Symbol:</label>
+                    <input type="text" id="ticker" name="ticker" placeholder="e.g., AAPL">
+                </div>
+                <div class="form-group">
+                    <button type="submit">Fetch Ticker Info</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Display Results -->
+        <div class="results">
+            <h2>Results</h2>
+            <pre id="resultsOutput"></pre>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('stockForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const includePrices = document.getElementById('includePrices').checked;
+            const exchangeSymbol = document.getElementById('exchangeSymbol').value;
+            const minScoreTotal = document.getElementById('minScoreTotal').value;
+            const sortBy = document.getElementById('sortBy').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+            const timeIntervalDays = document.getElementById('timeIntervalDays').value;
+
+            const queryParams = new URLSearchParams();
+
+            if (includePrices) queryParams.append('includePrices', 'true');
+            if (exchangeSymbol) queryParams.append('exchangeSymbol', exchangeSymbol);
+            if (minScoreTotal) queryParams.append('minScoreTotal', minScoreTotal);
+            if (sortBy) queryParams.append('sortBy', sortBy);
+            if (sortOrder) queryParams.append('sortOrder', sortOrder);
+            if (timeIntervalDays) queryParams.append('timeIntervalDays', timeIntervalDays);
+
+            const response = await fetch(`/stocks?${queryParams.toString()}`);
+            const data = await response.json();
+
+            document.getElementById('resultsOutput').textContent = JSON.stringify(data, null, 2);
+        });
+
+        document.getElementById('tickerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const ticker = document.getElementById('ticker').value;
+
+            const response = await fetch(`/stocks/${ticker}`);
+            const data = await response.json();
+
+            document.getElementById('resultsOutput').textContent = JSON.stringify(data, null, 2);
+        });
+    </script>
+</body>
+</html>

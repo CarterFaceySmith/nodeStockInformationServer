@@ -1,4 +1,6 @@
+
 const express = require('express');
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 const logger = require('./services/logger');
@@ -6,41 +8,45 @@ const stocksRouter = require('./routes/stocks');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
 
+// Rate Limiting Middleware
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,     // 15min
-  max: config.requestRateLimit,// 100req per windowMs per IP addr
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: config.requestRateLimit, // Max requests per windowMs per IP address
   message: 'Too many requests from this IP, please try again later.',
   headers: true,
 });
 
 app.use(limiter);
 
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root Route - Serve index.html
 app.get('/', (req, res) => {
-  res.json({message: 'Stock server active.'});
-  logger.info('Receiving connection');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  logger.info('Serving index.html');
 });
 
+// API Routes
 app.use('/stocks', stocksRouter);
 
-// Global error handling middleware
+// Global Error Handling Middleware
 app.use((err, req, res, next) => {
   logger.error('Global error handler:', err.message);
   res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error'
+    error: err.message || 'Internal Server Error',
   });
 });
 
-// Amended better-sqlite3 graceful exit code 
-process.on('SIGINT', () => {
-  console.log('\nSIGINT detected, shutting down server...');
-  logger.info('Shutting down server gracefully...');
-  
-  // Log the shutdown and exit process
-  logger.info('Database will be closed automatically by the process exit.');
-
-  // Exit the process
+// Graceful Shutdown
+const gracefulShutdown = () => {
+  logger.info('SIGINT detected. Shutting down gracefully...');
+  // Close server and database connections if needed
   process.exit(0);
-});
+};
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
 
 // Handle uncaught exceptions and unhandled rejections
 process.on('uncaughtException', (err) => {
