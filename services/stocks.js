@@ -167,7 +167,7 @@ function getAllTickersInfo(includePrices = false, filters = {}, timeRangeDays = 
   //params.push(limit, offset);
   
   // Debugging output
-  logger.info(`
+  logger.debug(`
     DB QUERY:\n===========================
     Parameters:\t${params}
     Sorting by:\t${sortBy}
