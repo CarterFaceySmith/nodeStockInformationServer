@@ -142,6 +142,11 @@ The project uses a `config.js` file to manage various configuration settings thr
 - `listPerPage`: Defines the number of items to display per page. It defaults to 15 if not specified in the environment variables.
 - `requestRateLimit`: Sets the maximum number of requests allowed. It defaults to 100 if not specified in the environment variables.
 
+Proposed configs:
+- `redisPort`: Sets the server port for your Redis instance if you have configured the commented code in.
+- `cacheDuration`: Defines the length of time in seconds to hold cached query data for in your configured Redis instance.
+- `secretKey`: Set the secret key variable of your Redis instance if configured.
+
 You can use `export <ENV VAR NAME>=X` to customise these before starting the application.
 
 ## Testing
@@ -163,15 +168,21 @@ npm run test:watch
 
 ## Potential Improvements
 
-- In-memory server-side caching, likely via implementation of Redis.
+- In-memory server-side caching via implementation of Redis.
 - More robust error handling
 - Customising the rate limiting on a per route basis
 - Reimplementation of pagination for a larger database
 - Improved security measures
 - Indexing of the database prior to querying
-- Potential refactoring of the database joins to be more efficient in querying
+- Potential refactoring of the database joins to be more efficient in querying (i.e. use of INNER JOIN over LEFT JOIN may improve efficiency of querying)
 - Deployment as an isolated microservice
 - Implementation of a simple frontend for visualisation
+
+## Further Notes Regarding Caching
+
+Redis caching would dramatically boost efficiency as this database grows. Instead of every query hitting the database, which takes an average of 4.1ms per current testing, Redis could serve cached data in under 1ms handidly. This shift means that with a good cache hit rate (say 80%), the effective query time could drop to around 1.4ms. This not only speeds up response times but also eases the load on the database, improving scalability as the volume of stored stock data grows, just as it would in a real-world use case.
+
+A preliminary implementation/scaffolding of this is already in place within the repository, and the redis secret key is configurable as an environment variable, but redis is not active by default due to outstanding bugs and potential overengineering for the sample database size.
 
 ## Notes
 
