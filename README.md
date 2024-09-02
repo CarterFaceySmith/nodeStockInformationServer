@@ -13,7 +13,7 @@ This server enables users to retrieve company stock data from a three table loca
 - Volatility
 - ...and other relevant metrics.
 
-The API supports various query parameters for filtering, sorting, and basic pagination.
+The API supports various query parameters for filtering, sorting, and basic pagination. It also includes a basic frontend for experimentation, this can be improved upon but this is a server repo after all.
 
 The API has a local logger using [Winston](https://github.com/winstonjs/winston) which runs according to the standard severity levels specified by [RFC5424](https://tools.ietf.org/html/rfc5424). 
 
@@ -71,6 +71,8 @@ To get started with NSIS, follow these steps:
    ```
 
    By default, the server will start on port `3000`. You can change the port by setting the `PORT` environment variable.
+
+   A basic frontend implementation has been merged in and can be found at the base route `localhost:<Your port>`.
 
 ### API Endpoints
 
@@ -176,7 +178,7 @@ npm run test:watch
 - Indexing of the database prior to querying
 - Potential refactoring of the database joins to be more efficient in querying (i.e. use of INNER JOIN over LEFT JOIN may improve efficiency of querying)
 - Deployment as an isolated microservice
-- Implementation of a simple frontend for visualisation
+- Improvements to the functionality and design of the frontend generally
 
 ## Further Notes Regarding Caching
 
