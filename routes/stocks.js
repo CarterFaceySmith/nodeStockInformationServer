@@ -5,7 +5,7 @@ const logger = require('../services/logger');
 
 router.get('/', function(req, res, next) {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    // const page = parseInt(req.query.page, 10) || 1;
     const includePrices = req.query.includePrices === 'true';
     const filters = {
       exchangeSymbol: req.query.exchangeSymbol || null,
@@ -16,7 +16,7 @@ router.get('/', function(req, res, next) {
     const sortBy = req.query.sortBy || 'score';
     const sortOrder = req.query.sortOrder || 'asc';
 
-    const result = stocks.getAllTickersInfo(page, includePrices, filters, timeIntervalDays, sortBy, sortOrder);
+    const result = stocks.getAllTickersInfo(includePrices, filters, timeIntervalDays, sortBy, sortOrder);
     res.json(result);
   } 
   catch (err) {

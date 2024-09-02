@@ -107,10 +107,9 @@ function calculateVolatility(prices) {
  * @returns {Object} return.meta - Metadata about the current page.
  * @returns {number} return.meta.page - The current page number.
  */
-function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRangeDays = 90, sortBy = 'score', sortOrder = 'asc') {
-  const limit = config.listPerPage;
-  const offset = (page - 1) * limit;
-  
+function getAllTickersInfo(includePrices = false, filters = {}, timeRangeDays = 90, sortBy = 'score', sortOrder = 'asc') {
+//  const limit = config.listPerPage;
+//  const offset = (page - 1) * limit;
   // Calculate the start and end dates for price data range
   // Uncomment the following lines to use dynamic date calculations
   // const endDate = moment().format('YYYY-MM-DD');
@@ -157,8 +156,8 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRa
     baseQuery += ` ORDER BY s.total ${sortOrder}`;
   }
 
-  baseQuery += ' LIMIT ? OFFSET ?';
-  params.push(limit, offset);
+  //baseQuery += ' LIMIT ? OFFSET ?';
+  //params.push(limit, offset);
  
   // Debugging output
   logger.debug(`
@@ -174,7 +173,7 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRa
   if (includePrices) {
     const companyIds = companies.map(c => c.id);
     if (companyIds.length === 0) {
-      return { data: [], meta: { page } }; // No companies found
+      return { data: [] }; // No companies found
     }
 
     const priceQuery = `
@@ -222,15 +221,13 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRa
     }
 
     return {
-      data: result,
-      meta: { page }
+      data: result
     };
   } else {
     // Remove prices if not needed
     const result = companies;
     return {
-      data: result,
-      meta: { page }
+      data: result
     };
   }
 }
