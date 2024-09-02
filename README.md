@@ -126,6 +126,13 @@ The server exposes several endpoints to interact with stock data. Below are exam
   ```bash
   curl -X GET "http://localhost:3000/stocks/AAPL/score"
   ```
+
+#### 4. **A More Complex Example**
+
+- Retrieves only stocks listed on the NYSE, with a minimum snowflake total of 15, sorted by that score in descending order and including all historical price data
+  ```bash
+  curl -X GET "http://localhost:3000/stocks?includePrices=true&exchangeSymbol=NYSE&minScoreTotal=15&sortBy=score&sortOrder=desc"
+  ```
   
 ## Configuration and Testing
 
