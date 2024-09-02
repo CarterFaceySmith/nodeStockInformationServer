@@ -28,21 +28,13 @@ router.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-let totalQueryTime = 0;
-let requestCount = 0;
-
 // Basic performance logging middleware for all routes
 function measurePerformance(req, res, next) {
   req.startTime = Date.now();
   
   res.on('finish', () => {
     const elapsed = Date.now() - req.startTime;
-    totalQueryTime += elapsed;
-    requestCount += 1;
-    const averageQueryTime = totalQueryTime / requestCount;
-
     logger.info(`Request to ${req.originalUrl} took ${elapsed}ms`);
-    logger.info(`Session average query time: ${averageQueryTime.toFixed(2)}ms`);
   });
   
   next();
@@ -63,10 +55,7 @@ router.get('/', async (req, res, next) => {
     const sortBy = req.query.sortBy || 'score';
     const sortOrder = req.query.sortOrder || 'asc';
 
-    const queryStart = Date.now();
     const result = await stocks.getAllTickersInfo(includePrices, filters, timeIntervalDays, sortBy, sortOrder);
-    const queryDuration = Date.now() - queryStart;
-    logger.info(`Query for all tickers took ${queryDuration}ms`);
     
     res.json(result);
   } 
@@ -81,11 +70,7 @@ router.get('/:ticker', async (req, res, next) => {
     const ticker = req.params.ticker;
     const getAllPrices = req.query.getAllPrices === 'true';
 
-    const queryStart = Date.now();
     const result = await stocks.getTickerInfoWithClose(ticker, getAllPrices);
-    const queryDuration = Date.now() - queryStart;
-    logger.info(`Query for ticker ${ticker} took ${queryDuration}ms`);
-
     res.json(result);
   }
   catch (err) {
@@ -98,10 +83,7 @@ router.get('/:ticker/score', async (req, res, next) => {
   try {
     const ticker = req.params.ticker;
 
-    const queryStart = Date.now();
     const result = await stocks.getTickerScore(ticker);
-    const queryDuration = Date.now() - queryStart;
-
     res.json(result);
   }
   catch (err) {
