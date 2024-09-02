@@ -45,7 +45,6 @@ function getTickerInfoWithClose(ticker, getAllPrices = false) {
   return {
     data,
     closeData: getAllPrices ? closeData : closeData[0] || null
-    // Note: Potentially overengineered for this task but closeData has been made extensible and compatible with common time series formatting in charting libs. Could improve further by intaking an interval for price output.
   };
 }
 
@@ -94,7 +93,6 @@ function calculateVolatility(prices) {
  * it also includes historical price data for each company. The function calculates volatility based on historical
  * price data and can sort the results based on different criteria.
  * 
- * @param {number} [page=1] - The pagination page number (defaults to 1).
  * @param {boolean} [includePrices=false] - Whether or not to include the past share prices in the response (defaults to false).
  * @param {Object} [filters={}] - Optional filters to apply to the results.
  * @param {string} [filters.exchangeSymbol] - The exchange symbol to filter companies by.
@@ -108,9 +106,9 @@ function calculateVolatility(prices) {
  * @returns {Object} return.meta - Metadata about the current page.
  * @returns {number} return.meta.page - The current page number.
  */
-function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRangeDays = 90, sortBy = 'score', sortOrder = 'asc') {
-  const limit = config.listPerPage;
-  const offset = (page - 1) * limit;
+function getAllTickersInfo(includePrices = false, filters = {}, timeRangeDays = 90, sortBy = 'score', sortOrder = 'asc') {
+  //  const limit = config.listPerPage;
+  //  const offset = (page - 1) * limit;
   
   // Calculate the start and end dates for price data range
   // Uncomment the following lines to use dynamic date calculations
@@ -120,28 +118,35 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRa
   // Hardcoded values for demonstration purposes
   const endDate = '2020-05-22';
   const startDate = '2020-03-25';
-  
+
   let baseQuery = `
     SELECT  c.id,
             c.ticker_symbol,
             c.name,
             c.exchange_symbol,
-            s.total,
-            p.price,
-            p.date
+            s.total
     FROM swsCompany c 
     LEFT JOIN swsCompanyScore s on c.id = s.company_id
-    LEFT JOIN (
-      SELECT  company_id,
-              price,
-              date
-      FROM swsCompanyPriceClose
-      WHERE date >= ? AND date <= ?
-    ) p on c.id = p.company_id
     WHERE 1=1
   `;
 
-  const params = [startDate, endDate];
+  const params = [];
+  
+  // If prices are included, join with price data
+  if (includePrices) {
+    baseQuery = `
+      SELECT c.id, c.ticker_symbol, c.name, c.exchange_symbol, s.total, p.price, p.date
+      FROM swsCompany c 
+      LEFT JOIN swsCompanyScore s on c.id = s.company_id
+      LEFT JOIN (
+        SELECT company_id, price, date
+        FROM swsCompanyPriceClose
+        WHERE date >= ? AND date <= ?
+      ) p on c.id = p.company_id
+      WHERE 1=1
+    `;
+    params.push(startDate, endDate);
+  }
   
   // Check and apply any filters from parameters
   if (filters.exchangeSymbol) {
@@ -158,11 +163,11 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRa
     baseQuery += ` ORDER BY s.total ${sortOrder}`;
   }
 
-  baseQuery += ' LIMIT ? OFFSET ?';
-  params.push(limit, offset);
- 
+  //baseQuery += ' LIMIT ? OFFSET ?';
+  //params.push(limit, offset);
+  
   // Debugging output
-  logger.debug(`
+  logger.info(`
     DB QUERY:\n===========================
     Parameters:\t${params}
     Sorting by:\t${sortBy}
@@ -175,7 +180,7 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRa
   if (includePrices) {
     const companyIds = companies.map(c => c.id);
     if (companyIds.length === 0) {
-      return { data: [], meta: { page } }; // No companies found
+      return { data: [] }; // No companies found
     }
 
     const priceQuery = `
@@ -223,15 +228,13 @@ function getAllTickersInfo(page = 1, includePrices = false, filters = {}, timeRa
     }
 
     return {
-      data: result,
-      meta: { page }
+      data: result
     };
   } else {
     // Remove prices if not needed
     const result = companies;
     return {
-      data: result,
-      meta: { page }
+      data: result
     };
   }
 }
