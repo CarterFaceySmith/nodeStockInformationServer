@@ -5,7 +5,6 @@ const logger = require('../services/logger');
 
 router.get('/', function(req, res, next) {
   try {
-    // const page = parseInt(req.query.page, 10) || 1;
     const includePrices = req.query.includePrices === 'true';
     const filters = {
       exchangeSymbol: req.query.exchangeSymbol || null,
